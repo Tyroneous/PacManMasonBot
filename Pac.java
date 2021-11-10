@@ -7,6 +7,7 @@
 package sim.app.pacman;
 import sim.engine.*;
 import java.util.Random;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -52,6 +53,13 @@ public class Pac extends Agent implements Steppable
         this.tag = tag;
         discretization = PAC_DISCRETIZATION;  // I go a bit faster
         stopper = pacman.schedule.scheduleRepeating(this, 0, 1);  // schedule at time 0
+        
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+        	public void run() {
+        		randDir();
+        	}
+        }, 0,60);
         }
 
     // the pac's start location
@@ -61,50 +69,6 @@ public class Pac extends Agent implements Steppable
    
     public int scoreTracker = 0;
 
-
-    public class randDir extends TimerTask {
-    	public void run() 
-        {
-            nTest = isPossibleToDoAction(Pac.N);
-            sTest = isPossibleToDoAction(Pac.S);
-            eTest = isPossibleToDoAction(Pac.E);
-            wTest = isPossibleToDoAction(Pac.W);
-            System.out.println(nTest + " "  + sTest + " " + eTest + " " + wTest );
-            if (nTest & sTest) 
-            {
-            	if(eTest)
-            	{
-            		pacman.actions[0] = Pac.E;
-            		performAction(Pac.E);
-            		System.out.println("Trying to take a random right");
-            	}
-            	else if (wTest)
-            	{
-            		pacman.actions[0] = Pac.W;
-            		performAction(Pac.W);
-            		System.out.println("Trying to take a random left");
-            	}
-            }
-            else if (eTest & wTest) 
-            {
-            	if(nTest)
-            	{
-            		pacman.actions[0] = Pac.N;
-            		performAction(Pac.N);
-            		System.out.println("Trying to take a random up");
-            	}
-            	else if (sTest)
-            	{
-            		pacman.actions[0] = Pac.S;
-            		performAction(Pac.S);
-            		System.out.println("Trying to take a random down");
-            	}
-            }
-            System.out.println("actually makes it out");
-        }
-    }
-    
-    ScheduledExecutorService executioner = Executors.newScheduledThreadPool(1);
     
     public void randDir()
     {
@@ -112,20 +76,19 @@ public class Pac extends Agent implements Steppable
         sTest = isPossibleToDoAction(Pac.S);
         eTest = isPossibleToDoAction(Pac.E);
         wTest = isPossibleToDoAction(Pac.W);
-        System.out.println(nTest + " "  + sTest + " " + eTest + " " + wTest );
         if (nTest & sTest) 
         {
         	if(eTest)
         	{
         		pacman.actions[0] = Pac.E;
         		performAction(Pac.E);
-        		System.out.println("Trying to take a random right");
+        		System.out.println("Random worked");
         	}
         	else if (wTest)
         	{
         		pacman.actions[0] = Pac.W;
         		performAction(Pac.W);
-        		System.out.println("Trying to take a random left");
+        		System.out.println("Random worked");
         	}
         }
         else if (eTest & wTest) 
@@ -134,16 +97,15 @@ public class Pac extends Agent implements Steppable
         	{
         		pacman.actions[0] = Pac.N;
         		performAction(Pac.N);
-        		System.out.println("Trying to take a random up");
+        		System.out.println("Random worked");
         	}
         	else if (sTest)
         	{
         		pacman.actions[0] = Pac.S;
         		performAction(Pac.S);
-        		System.out.println("Trying to take a random down");
+        		System.out.println("Random worked");
         	}
         }
-        System.out.println("actually makes it out");
     }
     
     /* Default policy implementation: Pac is controlled through the joystick/keyboard
@@ -151,43 +113,29 @@ public class Pac extends Agent implements Steppable
      */
     protected void doPolicyStep(SimState state)
         {
-    	System.out.println("current score: " + scoreTracker);
-    	int currentDir = 0;
-    	if (lastAction == NOTHING) //sets up the inital movement
+    	if (lastAction == NOTHING) //sets up the initial movement
     		{
     		if(isPossibleToDoAction(Pac.E)) 
     			{
 	    		pacman.actions[0] = Pac.E;
 	    		performAction(Pac.E);
-	    		currentDir = Pac.E;
     			}
     		else if (isPossibleToDoAction(Pac.S)) 
     			{
     		    pacman.actions[0] = Pac.S;
     		    performAction(Pac.S);
-    		    currentDir = Pac.S;
     			}
     		else if (isPossibleToDoAction(Pac.N)) 
     			{
     		    pacman.actions[0] = Pac.N;
     		    performAction(Pac.N);
-    		    currentDir = Pac.N;
     			}
     		}
-    	nTest = isPossibleToDoAction(Pac.N);
-        sTest = isPossibleToDoAction(Pac.S);
-        eTest = isPossibleToDoAction(Pac.E);
-        wTest = isPossibleToDoAction(Pac.W);
+    	
     	switch (lastAction)
     		{
     	case 0:
-    		if (isPossibleToDoAction(Pac.N) & nTest & sTest & eTest)
-	    		{
-    			System.out.println("Up is okay but I wanna go right...");
-	    		pacman.actions[0] = Pac.E;
-	    		performAction(Pac.E);
-	    		}
-    		else if (isPossibleToDoAction(Pac.N)) 
+    		if (isPossibleToDoAction(Pac.N)) 
 	    		{
 		    	pacman.actions[0] = Pac.N;
 		    	performAction(Pac.N);
@@ -197,21 +145,18 @@ public class Pac extends Agent implements Steppable
 		    	System.out.println("N to W");
 			    pacman.actions[0] = Pac.W;
 			    performAction(Pac.W);
-			    currentDir = Pac.W;
 			   	}
 		    else if (isPossibleToDoAction(Pac.E))
 			    {
 		    	System.out.println("N to E");
 			    pacman.actions[0] = Pac.E;
 			    performAction(Pac.E);
-			    currentDir = Pac.E;
 			   	}
 		    else if (isPossibleToDoAction(Pac.S))
 			    {
 		    	System.out.println("N to S");
 			    pacman.actions[0] = Pac.S;
 			    performAction(Pac.S);
-			    currentDir = Pac.S;
 			   	}
     		break;
     	case 1:
@@ -225,21 +170,18 @@ public class Pac extends Agent implements Steppable
 		    	System.out.println("E to S");
 			    pacman.actions[0] = Pac.S;
 			    performAction(Pac.S);
-			    currentDir = Pac.S;
 			   	}
 		    else if (isPossibleToDoAction(Pac.N))
 			    {
 		    	System.out.println("E to N");
 			    pacman.actions[0] = Pac.N;
 			    performAction(Pac.N);
-			    currentDir = Pac.N;
 			   	}
 		    else if (isPossibleToDoAction(Pac.W))
 			    {
 		    	System.out.println("E to W");
 			    pacman.actions[0] = Pac.W;
 			    performAction(Pac.W);
-			    currentDir = Pac.W;
 			   	}
     		break;
     	case 2:
@@ -253,21 +195,18 @@ public class Pac extends Agent implements Steppable
 		    	System.out.println("S to E");
 			    pacman.actions[0] = Pac.E;
 			    performAction(Pac.E);
-			    currentDir = Pac.E;
 			   	} 
 		    else if (isPossibleToDoAction(Pac.W))
 			    {
 		    	System.out.println("S to W");
 			    pacman.actions[0] = Pac.W;
 			    performAction(Pac.W);
-			    currentDir = Pac.W;
 			   	}
 		    else if (isPossibleToDoAction(Pac.N))
 			    {
 		    	System.out.println("S to N");
 			    pacman.actions[0] = Pac.N;
 			    performAction(Pac.N);
-			    currentDir = Pac.N;
 			   	}
     		break;
     	case 3:
@@ -276,26 +215,23 @@ public class Pac extends Agent implements Steppable
 		    	pacman.actions[0] = Pac.W;
 		    	performAction(Pac.W);
 		    	}
-    		else if (isPossibleToDoAction(Pac.S))
-			    {
-		    	System.out.println("W to S");
-			    pacman.actions[0] = Pac.S;
-			    performAction(Pac.S);
-			    currentDir = Pac.S;
-			    }
 		    else if (isPossibleToDoAction(Pac.N))
 			    {
 		    	System.out.println("W to N");
 			    pacman.actions[0] = Pac.N;
 			    performAction(Pac.N);
-			    currentDir = Pac.N;
 			   	}
+    		else if (isPossibleToDoAction(Pac.S))
+			    {
+		    	System.out.println("W to S");
+			    pacman.actions[0] = Pac.S;
+			    performAction(Pac.S);
+			    }
 		    else if (isPossibleToDoAction(Pac.E))
 			    {
 		    	System.out.println("W to E");
 			    pacman.actions[0] = Pac.E;
 			    performAction(Pac.E);
-			    currentDir = Pac.E;
 			    }
     		break;
     		}
